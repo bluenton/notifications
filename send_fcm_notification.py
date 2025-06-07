@@ -8,16 +8,16 @@ from datetime import datetime, timedelta
 # IMPORTANT: Replace 'path/to/your/serviceAccountKey.json' with the actual path
 # or handle this securely using GitHub Secrets (recommended for GitHub Actions).
 # When using GitHub Secrets, the key will be passed as an environment variable.
-# Example: service_account_info = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY'))
+# Example: service_account_info = json.loads(os.environ.get('cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'))
 # Then use: credentials.Certificate(service_account_info)
 # For local testing, you can use: credentials.Certificate('path/to/your/serviceAccountKey.json')
 
 # Get service account key from environment variable (for GitHub Actions)
 # Or load from a local file for development (uncomment and adjust path below)
 service_account_info = None
-if os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY'):
+if os.environ.get('cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'):
     try:
-        service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT_KEY'])
+        service_account_info = json.loads(os.environ['cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'])
         cred = credentials.Certificate(service_account_info)
         print("Service account key loaded from environment variable.")
     except json.JSONDecodeError as e:
