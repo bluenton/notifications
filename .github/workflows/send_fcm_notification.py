@@ -5,23 +5,16 @@ import json
 from datetime import datetime, timedelta
 
 # --- Firebase Configuration ---
-# IMPORTANT: Replace 'path/to/your/serviceAccountKey.json' with the actual path
-# or handle this securely using GitHub Secrets (recommended for GitHub Actions).
-# When using GitHub Secrets, the key will be passed as an environment variable.
-# Example: service_account_info = json.loads(os.environ.get('cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'))
-# Then use: credentials.Certificate(service_account_info)
-# For local testing, you can use: credentials.Certificate('path/to/your/serviceAccountKey.json')
-
 # Get service account key from environment variable (for GitHub Actions)
 # Or load from a local file for development (uncomment and adjust path below)
 service_account_info = None
-if os.environ.get('cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'):
+if os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY'): # <--- CORRECTED: Use the actual secret name here
     try:
-        service_account_info = json.loads(os.environ['cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM'])
+        service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT_KEY']) # <--- CORRECTED: Use the actual secret name here
         cred = credentials.Certificate(service_account_info)
         print("Service account key loaded from environment variable.")
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON from FIREBASE_SERVICE_ACCOUNT_KEY: {e}")
+        print(f"Error decoding JSON from FIREBASE_SERVICE_ACCOUNT_KEY environment variable: {e}")
         exit(1)
 elif os.path.exists('serviceAccountKey.json'):
     # For local development, assuming you downloaded your key here
@@ -29,7 +22,7 @@ elif os.path.exists('serviceAccountKey.json'):
     print("Service account key loaded from local file.")
 else:
     print("Error: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not set and serviceAccountKey.json not found.")
-    print("Please set the environment variable or create the local file.")
+    print("Please set the FIREBASE_SERVICE_ACCOUNT_KEY secret in GitHub Actions or create the local file for development.")
     exit(1)
 
 # Initialize Firebase Admin SDK
@@ -49,9 +42,9 @@ FIRESTORE_COLLECTION_PATH = "artifacts/default-app-id/public/data/paymentSession
 # Store FCM registration tokens here. In a real app, you would fetch these
 # from a Firestore collection where your web app saves them.
 # For demonstration, let's assume one hardcoded token for now.
-# Replace with an actual token obtained from your web app.
+# Replaced with the FCM token you provided.
 FCM_REGISTRATION_TOKENS = [
-    "YOUR_DEVICE_FCM_TOKEN_HERE", # Replace with a real FCM token from your browser
+    "cVTwEN5xQsmOjppCvq_0ZP:APA91bGCAozlGHkWsJauysJ4K7G8V8IEuInyVRXyPveV8H1w3g6bUAPFj__iMmUyqlDwSsWJqtiDLbYJN-hhxJTmfT2XRGHfSS8GHX1Rmno1zAO4WqQTdoM", # Your actual token
     # Add more tokens if you want to send to multiple devices
 ]
 
