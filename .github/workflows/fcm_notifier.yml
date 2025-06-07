@@ -25,29 +25,33 @@ jobs:
 
     - name: Run FCM Notifier Script
       env:
-        # Securely pass your Firebase service account key as a JSON string
+        # Securely pass your Firebase service account key as a JSON string.
         # You MUST add this as a secret in your GitHub repository settings.
+        # Go to your repository -> Settings -> Secrets and variables -> Actions -> New repository secret.
         # Name: FIREBASE_SERVICE_ACCOUNT_KEY
-        # Value: The JSON content of your service account key file, minified into a single line.
+        # Value: The ENTIRE JSON content of your downloaded Firebase service account key file,
+        #        minified into a single line (no newlines).
         FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
-        # Pass FCM tokens if needed, though often retrieved from database by the script
-        # FCM_REGISTRATION_TOKENS: "token1,token2" # Example for multiple tokens
+        # If your Python script needed FCM tokens as environment variables, you could add them here.
+        # However, the current Python script hardcodes them or expects them to be fetched from Firestore.
+        # FCM_REGISTRATION_TOKENS: "token1,token2,token3"
       run: |
         python send_fcm_notification.py
 
     - name: Persist processed sessions (Optional, for more robust state management)
-      # This step copies the processed_sessions.json back into the workspace
-      # so that subsequent runs can access it.
-      # Requires write permissions for the workflow.
-      # For production, consider saving processed state directly to Firestore or another DB.
+      # This step is commented out by default as persisting state across ephemeral
+      # GitHub Actions runners requires a more robust solution like a database.
+      # If you uncomment this, it attempts to save a local 'processed_sessions.json'
+      # file to a temporary location that *might* be available in subsequent runs
+      # if the runner is reused (which is not guaranteed).
+      # For production, consider saving processed session IDs directly to Firestore.
       run: |
         if [ -f processed_sessions.json ]; then
           mkdir -p ~/.processed_sessions
           mv processed_sessions.json ~/.processed_sessions/processed_sessions.json
+          echo "Processed sessions file moved for potential persistence."
+        else
+          echo "No processed sessions file to persist."
         fi
-      # This is commented out as it needs a more persistent storage solution
-      # than the ephemeral GitHub Actions runner for production use.
-      # It's here for conceptual understanding of state persistence.
-      # You would need a separate storage mechanism like a Firestore collection
-      # to store processed session IDs across different workflow runs.
-
+      # IMPORTANT: If you need persistence, consider using Firebase Firestore itself
+      # to store processed session IDs instead of relying on ephemeral runner storage.
