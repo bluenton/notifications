@@ -20,6 +20,14 @@ jobs:
       # Checks out your repository code into the runner environment
       uses: actions/checkout@v4
 
+    # --- Debugging Steps ---
+    - name: Print current working directory
+      run: pwd
+
+    - name: List repository contents
+      run: ls -R
+    # --- End Debugging Steps ---
+
     - name: Set up Python
       # Sets up the Python environment on the runner
       uses: actions/setup-python@v5
