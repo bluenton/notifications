@@ -103,14 +103,17 @@ def check_for_new_payment_sessions():
     time_threshold_timestamp = int(time_threshold.timestamp() * 1000) # Convert to milliseconds
 
     # Query for documents updated within the last CHECK_INTERVAL_MINUTES
-    # NOTE: Firestore orderBy queries require an index if you're not ordering by document ID.
-    # You might need to create an index for `updatedAt` in your Firebase Console if you encounter errors.
+    # IMPORTANT: Firestore `where` clause with `orderBy` on a different field (or the same field if not querying equality)
+    # requires a composite index.
+    # If you encounter an error like "The query requires an index...",
+    # go to your Firebase Console -> Firestore Database -> Indexes tab
+    # and create the following index:
     # Collection: artifacts/default-app-id/public/data/paymentSessions
     # Field: updatedAt (Ascending)
     try:
         sessions_ref = db.collection(FIRESTORE_COLLECTION_PATH)
         query = sessions_ref.where('updatedAt', '>', time_threshold_timestamp) \
-                            .order_by('updatedAt') # Ordering is good practice
+                            .order_by('updatedAt')
 
         docs = query.stream()
         found_new_events = False
