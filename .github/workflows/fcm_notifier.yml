@@ -42,7 +42,9 @@ jobs:
         echo "FIREBASE_SERVICE_ACCOUNT_KEY_PATH=serviceAccountKey.json" >> $GITHUB_ENV
 
     - name: Run FCM notifier script
-      # Executes your Python script
+      # Executes your Python script.
+      # Ensure 'fcm_notifier_polling.py' is located in the 'scripts/' directory
+      # at the root of your repository (e.g., your-repo/scripts/fcm_notifier_polling.py).
       env:
         # Pass Firebase Realtime Database URL from GitHub Secrets
         FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
@@ -51,5 +53,5 @@ jobs:
         # Pass FCM topic from GitHub Secrets (optional, if you want to override the default in script)
         FCM_TOPIC: ${{ secrets.FCM_TOPIC }}
       run: |
-        python fcm_notifier_polling.py
+        python scripts/fcm_notifier_polling.py # Corrected path to the script
 
