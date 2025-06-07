@@ -1,57 +1,55 @@
-name: Firebase FCM Notifier
+# File: notifications/.github/workflows/fcm_notifier.yml
+name: Firebase FCM Notifier (Polling)
 
 on:
-  workflow_dispatch: # Allows manual triggering from GitHub UI
   schedule:
-    - cron: '*/5 * * * *' # Runs every 5 minutes (adjust as needed)
+    # Runs every 15 minutes. Adjust as needed.
+    # This cron expression means "at minute 0, 15, 30, 45 past every hour, every day, every month, every day of the week"
+    # For more frequent runs, e.g., every 5 minutes: '*/5 * * * *'
+    # Be mindful of GitHub Actions usage limits and Firebase read costs for very frequent runs.
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
 
 jobs:
-  run-notifier:
+  send_notifications:
     runs-on: ubuntu-latest
+    timeout-minutes: 5 # Sets a timeout for the job to prevent it from running indefinitely
 
     steps:
     - name: Checkout repository
+      # Checks out your repository code into the runner environment
       uses: actions/checkout@v4
 
     - name: Set up Python
+      # Sets up the Python environment on the runner
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x' # Use a compatible Python version
+        python-version: '3.9' # Using a specific Python version for stability
 
-    - name: Install dependencies
+    - name: Install Python dependencies
+      # Installs the required Python packages
       run: |
-        python -m pip install --upgrade pip
-        pip install firebase-admin # Install the Firebase Admin SDK
+        pip install firebase-admin requests
 
-    - name: Run FCM Notifier Script
+    - name: Create Firebase service account key file
+      # This step securely takes the service account JSON from a GitHub Secret
+      # and writes it to a file that your Python script can access.
       env:
-        # Securely pass your Firebase service account key as a JSON string.
-        # You MUST add this as a secret in your GitHub repository settings.
-        # Go to your repository -> Settings -> Secrets and variables -> Actions -> New repository secret.
-        # Name: FIREBASE_SERVICE_ACCOUNT_KEY
-        # Value: The ENTIRE JSON content of your downloaded Firebase service account key file,
-        #        minified into a single line (no newlines).
-        FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
-        # If your Python script needed FCM tokens as environment variables, you could add them here.
-        # However, the current Python script hardcodes them or expects them to be fetched from Firestore.
-        # FCM_REGISTRATION_TOKENS: "token1,token2,token3"
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
       run: |
-        python send_fcm_notification.py
+        echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > serviceAccountKey.json
+        # Export the path to this file as an environment variable for the Python script
+        echo "FIREBASE_SERVICE_ACCOUNT_KEY_PATH=serviceAccountKey.json" >> $GITHUB_ENV
 
-    - name: Persist processed sessions (Optional, for more robust state management)
-      # This step is commented out by default as persisting state across ephemeral
-      # GitHub Actions runners requires a more robust solution like a database.
-      # If you uncomment this, it attempts to save a local 'processed_sessions.json'
-      # file to a temporary location that *might* be available in subsequent runs
-      # if the runner is reused (which is not guaranteed).
-      # For production, consider saving processed session IDs directly to Firestore.
+    - name: Run FCM notifier script
+      # Executes your Python script
+      env:
+        # Pass Firebase Realtime Database URL from GitHub Secrets
+        FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
+        # Pass FCM device token from GitHub Secrets (optional, for specific device testing)
+        FCM_DEVICE_TOKEN: ${{ secrets.FCM_DEVICE_TOKEN }}
+        # Pass FCM topic from GitHub Secrets (optional, if you want to override the default in script)
+        FCM_TOPIC: ${{ secrets.FCM_TOPIC }}
       run: |
-        if [ -f processed_sessions.json ]; then
-          mkdir -p ~/.processed_sessions
-          mv processed_sessions.json ~/.processed_sessions/processed_sessions.json
-          echo "Processed sessions file moved for potential persistence."
-        else
-          echo "No processed sessions file to persist."
-        fi
-      # IMPORTANT: If you need persistence, consider using Firebase Firestore itself
-      # to store processed session IDs instead of relying on ephemeral runner storage.
+        python fcm_notifier_polling.py
+
