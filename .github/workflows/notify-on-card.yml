@@ -1,65 +1,28 @@
-# File: notifications/.github/workflows/fcm_notifier.yml
-name: Firebase FCM Notifier (Polling)
+name: Notify on New Card
 
 on:
   schedule:
-    # Runs every 15 minutes. Adjust as needed.
-    # This cron expression means "at minute 0, 15, 30, 45 past every hour, every day, every month, every day of the week"
-    # For more frequent runs, e.g., every 5 minutes: '*/5 * * * *'
-    # Be mindful of GitHub Actions usage limits and Firebase read costs for very frequent runs.
-    - cron: '*/15 * * * *'
-  workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
+    - cron: "*/1 * * * *"  # Every 5 minutes
+  workflow_dispatch:
 
 jobs:
-  send_notifications:
+  notify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5 # Sets a timeout for the job to prevent it from running indefinitely
 
     steps:
-    - name: Checkout repository
-      # Checks out your repository code into the runner environment
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    # --- Debugging Steps ---
-    - name: Print current working directory
-      run: pwd
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: List repository contents
-      run: ls -R
-    # --- End Debugging Steps ---
+      - name: Install dependencies
+        run: npm install firebase-admin
 
-    - name: Set up Python
-      # Sets up the Python environment on the runner
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9' # Using a specific Python version for stability
+      - name: Run notification script
+        run: node send_fcm_notification.js
 
-    - name: Install Python dependencies
-      # Installs the required Python packages
-      run: |
-        pip install firebase-admin requests
-
-    - name: Create Firebase service account key file
-      # This step securely takes the service account JSON from a GitHub Secret
-      # and writes it to a file that your Python script can access.
-      env:
-        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-      run: |
-        echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > serviceAccountKey.json
-        # Export the path to this file as an environment variable for the Python script
-        echo "FIREBASE_SERVICE_ACCOUNT_KEY_PATH=serviceAccountKey.json" >> $GITHUB_ENV
-
-    - name: Run FCM notifier script
-      # Executes your Python script.
-      # Ensure 'fcm_notifier_polling.py' is located in the 'scripts/' directory
-      # at the root of your repository (e.g., your-repo/scripts/fcm_notifier_polling.py).
-      env:
-        # Pass Firebase Realtime Database URL from GitHub Secrets
-        FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
-        # Pass FCM device token from GitHub Secrets (optional, for specific device testing)
-        FCM_DEVICE_TOKEN: ${{ secrets.FCM_DEVICE_TOKEN }}
-        # Pass FCM topic from GitHub Secrets (optional, if you want to override the default in script)
-        FCM_TOPIC: ${{ secrets.FCM_TOPIC }}
-      run: |
-        python scripts/fcm_notifier_polling.py # Corrected path to the script
-
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./hide-app-7cfe2-firebase-adminsdk-s0v49-1bbf26aa3a.json
